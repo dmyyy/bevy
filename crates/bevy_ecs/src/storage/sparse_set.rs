@@ -163,7 +163,12 @@ impl ComponentSparseSet {
     /// # Safety
     /// The `value` pointer must point to a valid address that matches the [`Layout`](std::alloc::Layout)
     /// inside the [`ComponentInfo`] given when constructing this sparse set.
-    pub(crate) unsafe fn insert(&mut self, entity: Entity, value: OwningPtr<'_>, change_tick: u32) {
+    pub(crate) unsafe fn insert(
+        &mut self,
+        entity: Entity,
+        value: OwningPtr<'_>,
+        change_tick: Tick,
+    ) {
         if let Some(&dense_index) = self.sparse.get(entity.index()) {
             #[cfg(debug_assertions)]
             assert_eq!(entity, self.entities[dense_index as usize]);
@@ -332,7 +337,7 @@ impl ComponentSparseSet {
         }
     }
 
-    pub(crate) fn check_change_ticks(&mut self, change_tick: u32) {
+    pub(crate) fn check_change_ticks(&mut self, change_tick: Tick) {
         self.dense.check_change_ticks(change_tick);
     }
 }
@@ -541,10 +546,12 @@ pub trait SparseSetIndex: Clone + PartialEq + Eq + Hash {
 macro_rules! impl_sparse_set_index {
     ($($ty:ty),+) => {
         $(impl SparseSetIndex for $ty {
+            #[inline]
             fn sparse_set_index(&self) -> usize {
                 *self as usize
             }
 
+            #[inline]
             fn get_sparse_set_index(value: usize) -> Self {
                 value as $ty
             }
@@ -582,6 +589,7 @@ impl SparseSets {
     }
 
     /// Gets a reference to the [`ComponentSparseSet`] of a [`ComponentId`].
+    #[inline]
     pub fn get(&self, component_id: ComponentId) -> Option<&ComponentSparseSet> {
         self.sets.get(component_id)
     }
@@ -614,7 +622,7 @@ impl SparseSets {
         }
     }
 
-    pub(crate) fn check_change_ticks(&mut self, change_tick: u32) {
+    pub(crate) fn check_change_ticks(&mut self, change_tick: Tick) {
         for set in self.sets.values_mut() {
             set.check_change_ticks(change_tick);
         }
@@ -714,7 +722,7 @@ mod tests {
         );
 
         fn init_component<T: Component>(sets: &mut SparseSets, id: usize) {
-            let descriptor = ComponentDescriptor::new::<TestComponent1>();
+            let descriptor = ComponentDescriptor::new::<T>();
             let id = ComponentId::new(id);
             let info = ComponentInfo::new(id, descriptor);
             sets.get_or_insert(&info);

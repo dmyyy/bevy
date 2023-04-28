@@ -185,7 +185,7 @@ impl<'w, 's> Commands<'w, 's> {
     /// Pushes a [`Command`] to the queue for creating a new [`Entity`] if the given one does not exists,
     /// and returns its corresponding [`EntityCommands`].
     ///
-    /// This method silently fails by returning `EntityCommands`
+    /// This method silently fails by returning [`EntityCommands`]
     /// even if the given `Entity` cannot be spawned.
     ///
     /// See [`World::get_or_spawn`] for more details.
@@ -346,7 +346,7 @@ impl<'w, 's> Commands<'w, 's> {
 
     /// Pushes a [`Command`] to the queue for creating entities with a particular [`Bundle`] type.
     ///
-    /// `bundles_iter` is a type that can be converted into a `Bundle` iterator
+    /// `bundles_iter` is a type that can be converted into a [`Bundle`] iterator
     /// (it can also be a collection).
     ///
     /// This method is equivalent to iterating `bundles_iter`
@@ -445,9 +445,7 @@ impl<'w, 's> Commands<'w, 's> {
     /// # bevy_ecs::system::assert_is_system(initialise_scoreboard);
     /// ```
     pub fn init_resource<R: Resource + FromWorld>(&mut self) {
-        self.queue.push(InitResource::<R> {
-            _phantom: PhantomData::<R>::default(),
-        });
+        self.queue.push(InitResource::<R>::new());
     }
 
     /// Pushes a [`Command`] to the queue for inserting a [`Resource`] in the [`World`] with a specific value.
@@ -500,9 +498,7 @@ impl<'w, 's> Commands<'w, 's> {
     /// # bevy_ecs::system::assert_is_system(system);
     /// ```
     pub fn remove_resource<R: Resource>(&mut self) {
-        self.queue.push(RemoveResource::<R> {
-            phantom: PhantomData,
-        });
+        self.queue.push(RemoveResource::<R>::new());
     }
 
     /// Adds a command directly to the command queue.
@@ -604,9 +600,9 @@ impl<'w, 's> Commands<'w, 's> {
 /// # world.init_resource::<Counter>();
 /// #
 /// # let mut setup_schedule = Schedule::new();
-/// # setup_schedule.add_system(setup);
+/// # setup_schedule.add_systems(setup);
 /// # let mut assert_schedule = Schedule::new();
-/// # assert_schedule.add_system(assert_names);
+/// # assert_schedule.add_systems(assert_names);
 /// #
 /// # setup_schedule.run(&mut world);
 /// # assert_schedule.run(&mut world);
@@ -770,10 +766,7 @@ impl<'w, 's, 'a> EntityCommands<'w, 's, 'a> {
     where
         T: Bundle,
     {
-        self.commands.add(Remove::<T> {
-            entity: self.entity,
-            phantom: PhantomData,
-        });
+        self.commands.add(Remove::<T>::new(self.entity));
         self
     }
 
@@ -978,6 +971,16 @@ where
     }
 }
 
+impl<T> Remove<T> {
+    /// Creates a [`Command`] which will remove the specified [`Entity`] when flushed
+    pub const fn new(entity: Entity) -> Self {
+        Self {
+            entity,
+            phantom: PhantomData::<T>,
+        }
+    }
+}
+
 pub struct InitResource<R: Resource + FromWorld> {
     _phantom: PhantomData<R>,
 }
@@ -985,6 +988,15 @@ pub struct InitResource<R: Resource + FromWorld> {
 impl<R: Resource + FromWorld> Command for InitResource<R> {
     fn write(self, world: &mut World) {
         world.init_resource::<R>();
+    }
+}
+
+impl<R: Resource + FromWorld> InitResource<R> {
+    /// Creates a [`Command`] which will insert a default created [`Resource`] into the [`World`]
+    pub const fn new() -> Self {
+        Self {
+            _phantom: PhantomData::<R>,
+        }
     }
 }
 
@@ -1005,6 +1017,15 @@ pub struct RemoveResource<R: Resource> {
 impl<R: Resource> Command for RemoveResource<R> {
     fn write(self, world: &mut World) {
         world.remove_resource::<R>();
+    }
+}
+
+impl<R: Resource> RemoveResource<R> {
+    /// Creates a [`Command`] which will remove a [`Resource`] from the [`World`]
+    pub const fn new() -> Self {
+        Self {
+            phantom: PhantomData::<R>,
+        }
     }
 }
 
