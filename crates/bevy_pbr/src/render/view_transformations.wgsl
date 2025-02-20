@@ -99,14 +99,12 @@ fn direction_clip_to_view(clip_dir: vec4<f32>) -> vec3<f32> {
 // -----------------
 
 fn position_world_to_prev_view(world_pos: vec3<f32>) -> vec3<f32> {
-    let view_pos = prepass_bindings::previous_view_uniforms.view_from_world *
-        vec4(world_pos, 1.0);
+    let view_pos = prepass_bindings::previous_view_uniforms.view_from_world * vec4(world_pos, 1.0);
     return view_pos.xyz;
 }
 
 fn position_world_to_prev_ndc(world_pos: vec3<f32>) -> vec3<f32> {
-    let ndc_pos = prepass_bindings::previous_view_uniforms.clip_from_world *
-        vec4(world_pos, 1.0);
+    let ndc_pos = prepass_bindings::previous_view_uniforms.clip_from_world * vec4(world_pos, 1.0);
     return ndc_pos.xyz / ndc_pos.w;
 }
 
@@ -193,11 +191,9 @@ fn prev_view_z_to_depth_ndc(view_z: f32) -> f32 {
 #ifdef VIEW_PROJECTION_PERSPECTIVE
     return -perspective_camera_near() / view_z;
 #else ifdef VIEW_PROJECTION_ORTHOGRAPHIC
-    return prepass_bindings::previous_view_uniforms.clip_from_view[3][2] +
-        view_z * prepass_bindings::previous_view_uniforms.clip_from_view[2][2];
+    return prepass_bindings::previous_view_uniforms.clip_from_view[3][2] + view_z * prepass_bindings::previous_view_uniforms.clip_from_view[2][2];
 #else
-    let ndc_pos = prepass_bindings::previous_view_uniforms.clip_from_view *
-        vec4(0.0, 0.0, view_z, 1.0);
+    let ndc_pos = prepass_bindings::previous_view_uniforms.clip_from_view * vec4(0.0, 0.0, view_z, 1.0);
     return ndc_pos.z / ndc_pos.w;
 #endif
 }

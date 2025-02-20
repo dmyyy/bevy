@@ -751,6 +751,9 @@ pub struct StandardMaterial {
 
     /// The transform applied to the UVs corresponding to `ATTRIBUTE_UV_0` on the mesh before sampling. Default is identity.
     pub uv_transform: Affine2,
+
+    /// If set, forcibly ignores the (x, y) rotation portion of the transform and face the object to the view.
+    pub is_billboard: bool,
 }
 
 impl StandardMaterial {
@@ -906,6 +909,7 @@ impl Default for StandardMaterial {
             opaque_render_method: OpaqueRendererMethod::Auto,
             deferred_lighting_pass_id: DEFAULT_PBR_DEFERRED_LIGHTING_PASS_ID,
             uv_transform: Affine2::IDENTITY,
+            is_billboard: false,
         }
     }
 }

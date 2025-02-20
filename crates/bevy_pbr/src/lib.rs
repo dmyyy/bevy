@@ -25,6 +25,7 @@ pub mod experimental {
 }
 
 mod atmosphere;
+mod billboard;
 mod cluster;
 mod components;
 pub mod decal;
@@ -50,6 +51,7 @@ use crate::material_bind_groups::FallbackBindlessResources;
 use bevy_color::{Color, LinearRgba};
 
 pub use atmosphere::*;
+pub use billboard::*;
 pub use cluster::*;
 pub use components::*;
 pub use decal::clustered::ClusteredDecalPlugin;
